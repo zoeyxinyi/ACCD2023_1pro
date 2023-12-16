@@ -1,0 +1,56 @@
+mat2 Rot(float a) {
+    float s=sin(a), c=cos(a);
+    return mat2(c, -s, s, c);
+}
+    
+float Star(vec2 uv, float flare) {
+    float d = length(uv);
+    float m = .05/d;//smoothstep(.2, .05, d);
+    //co1 += m;
+        
+    float rays = max(0.,1.-abs(uv.x*uv.y*1000.));
+    m += rays*flare;
+    uv *= Rot(3.1415/4.);
+    rays = max(0.,1.-abs(uv.x*uv.y*1000.));
+    m += rays*.3*flare;
+    
+    m *= smoothstep(.5,.2, d);
+    
+    return m;
+}
+
+float Hash21(vec2 p) {
+    p = fract(p*vec2(123.34, 456.21));
+    p += dot(p, p+45.32);
+    return fract(p.x*p.y);
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord)
+{
+    vec2 uv = (fragCoord-.5*iResolution.xy)/iResolution.y;
+    uv *= 3.;
+    
+    vec3 co1 = vec3(0);
+    
+    vec2 gv = fract(uv)-.5;
+    vec2 id = floor(uv);
+    
+    for(int y=1;y<=1;y++){
+        for(int x=1;x<=1;x++){
+            vec2 offs = vec2(x,y);
+            
+            float n = Hash21(id+offs); // random between 0 and 1
+            co1 += Star(gv-offs-vec2(n, fract(n*34.))+.5, 1.);
+        }
+    }
+    
+    
+    //co1.rg = gv;
+    //if(gv.x>.48 || gv.y>.48) co1.r=1.;
+    
+    //co1.rg += id*.4;
+    //co1 += Hash21(id);
+    
+    
+    fragColor = vec4(co1,1.0);
+}
